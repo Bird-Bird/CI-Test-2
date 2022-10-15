@@ -1,46 +1,17 @@
-# 3.21 is bundled in VSCode 2022
-# https://docs.microsoft.com/en-us/visualstudio/releases/2022/release-notes
-# 3.21 is also bundled in CLion as of 2021.3
 cmake_minimum_required(VERSION 3.21)
-
-# Change this to the name of your plugin
-# This cannot have spaces (but PRODUCT_NAME can)
 set(PROJECT_NAME "Pamplejuce")
-
-# Set the plugin formats you'll be building here.
-# Valid formats: AAX Unity VST AU AUv3 Standalone
 set(FORMATS AU VST3 AUv3)
-
-# Reads in VERSION file and sticks in it CURRENT_VERSION variable
-# Be sure the file has no newlines
 file(STRINGS VERSION CURRENT_VERSION)
-
-# For simplicity, the name of the project is also the name of the target
 project(${PROJECT_NAME} VERSION ${CURRENT_VERSION})
 
-# By default we don't want Xcode schemes to be made for modules, etc
 set(CMAKE_XCODE_GENERATE_SCHEME OFF)
-
-# Enable to build universal binaries on macOS, increasing build time
-# This only affects local builds, GitHub actions always builds Universals
-# set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Support macOS down to High Sierra")
-
-# Adds all the module sources so they appear correctly in the IDE
-# Must be set before JUCE is added as a sub-dir (or any targets are made)
-# https://github.com/juce-framework/JUCE/commit/6b1b4cf7f6b1008db44411f2c8887d71a3348889
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
-
-# Create a /Modules directory in the IDE with the JUCE Module code
 option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Show all module sources in IDE projects" ON)
 
-# JUCE is setup as a submodule in the /JUCE folder
-# Locally, you'll need to run `git submodule update --init --recursive` once
-# and `git submodule update --remote --merge` to keep it up to date
-# On Github Actions, it's managed by actions/checkout
 add_subdirectory(JUCE)
+add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL) 
 
-# Check the readme at `docs/CMake API.md` in the JUCE repo for full config
 juce_add_plugin("${PROJECT_NAME}"
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
@@ -58,10 +29,13 @@ juce_add_plugin("${PROJECT_NAME}"
     FORMATS "${FORMATS}"
     PRODUCT_NAME "${PROJECT_NAME}")        # The name of the final executable, which can differ from the target name
 
-# C++20 please
-target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
+clap_juce_extensions_plugin(TARGET Pamplejuce
+CLAP_ID "com.Pamplejuce.Pamplejuce"
+CLAP_FEATURES audio-effect)
 
-# Manually list all .h and .cpp files for the plugin
+juce_generate_juce_header(Pamplejuce)
+
+target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 set(SourceFiles
     Source/PluginEditor.h
     Source/PluginProcessor.h
@@ -82,12 +56,7 @@ juce_add_binary_data(Assets SOURCES pamplejuce.png)
 # See https://forum.juce.com/t/loading-pytorch-model-using-binarydata/39997/2
 set_target_properties(Assets PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-# This cleans up the folder organization on Xcode.
-# It tucks the Plugin varieties into a "Targets" folder and generate an Xcode Scheme manually
-# Xcode scheme generation is turned off globally to limit noise from other targets
-# The non-hacky way of doing this is via the global PREDEFINED_TARGETS_FOLDER property
-# However that doesn't seem to be working in Xcode
-# Not all plugin types (au, vst) available on each build type (win, macos, linux)
+# Folder
 foreach(target ${FORMATS} "All")
     if(TARGET ${PROJECT_NAME}_${target})
         set_target_properties(${PROJECT_NAME}_${target} PROPERTIES
@@ -123,47 +92,6 @@ target_link_libraries("${PROJECT_NAME}"
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
-
-# Required for ctest (which is just easier for cross-platform CI)
-# include(CTest) does this too, but adds tons of targets we don't want
-# See: https://github.com/catchorg/Catch2/issues/2026
-# You could forgo ctest and call ./Tests directly from the build dir
-enable_testing()
-
-# "GLOBS ARE BAD" is brittle and silly UX, sorry CMake!
-# CONFIGURE_DEPENDS / Clion's CMake integration makes globbing absolutely fine
-file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-
-# Use Catch2 v3 on the devel branch
-Include(FetchContent)
-FetchContent_Declare(
-    Catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_PROGRESS TRUE
-    GIT_SHALLOW TRUE
-    GIT_TAG v3.1.0)
-FetchContent_MakeAvailable(Catch2) # find_package equivalent
-
-# Setup the test executable, again C++ 20 please
-add_executable(Tests ${TestFiles})
-target_compile_features(Tests PRIVATE cxx_std_20)
-
-# Our test executable also wants to know about our plugin code...
-target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Source)
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain "${PROJECT_NAME}" ${JUCE_DEPENDENCIES})
-
-# Make an Xcode Scheme for the test executable so we can run tests in the IDE
-set_target_properties(Tests PROPERTIES XCODE_GENERATE_SCHEME ON)
-
-# Organize the test source in the Tests/ folder in the IDE
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
-
-# Load and use the .cmake file provided by Catch2
-# https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md
-# We have to manually provide the source directory here for now
-include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
-catch_discover_tests(Tests)
 
 # Color our warnings and errors
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
