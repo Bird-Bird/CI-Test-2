@@ -31,12 +31,12 @@ jobs:
           - name: Linux
             os: ubuntu-22.04
             pluginval-binary: ./pluginval
-          - name: macOS
-            os: macos-12
-            pluginval-binary: pluginval.app/Contents/MacOS/pluginval
-          - name: Windows
-            os: windows-latest
-            pluginval-binary: ./pluginval.exe
+          #- name: macOS
+          #  os: macos-12
+          #  pluginval-binary: pluginval.app/Contents/MacOS/pluginval
+          #- name: Windows
+          #  os: windows-latest
+          #  pluginval-binary: ./pluginval.exe
 
     steps:
     - name: Set up Clang
@@ -57,7 +57,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        submodules: true # Gotta get JUCE populated
+        submodules: recursive
 
     - name: Setup Environment Variables
       shell: bash
