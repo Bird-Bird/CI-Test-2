@@ -34,9 +34,9 @@ jobs:
           #- name: macOS
           #  os: macos-12
           #  pluginval-binary: pluginval.app/Contents/MacOS/pluginval
-          #- name: Windows
-          #  os: windows-latest
-          #  pluginval-binary: ./pluginval.exe
+          - name: Windows
+            os: windows-latest
+            pluginval-binary: ./pluginval.exe
 
     steps:
     - name: Set up Clang
@@ -82,11 +82,6 @@ jobs:
       shell: bash
       run: cmake --build ${{ env.BUILD_DIR }} --config ${{ env.BUILD_TYPE }} --parallel 4
 
-    - name: Test
-      working-directory: ${{ env.BUILD_DIR }}
-      run: ctest --output-on-failure -j4
-
-
     - name: Create DMG, Notarize and Staple (macOS)
       if: ${{ matrix.name == 'macOS' }}
       run: |
@@ -108,12 +103,16 @@ jobs:
       working-directory: ${{ env.ARTIFACTS_PATH }}
       run: 7z a -tzip ${{ env.PRODUCT_NAME }}.zip .
 
-    - name: Generate Installer and Sign with EV cert on Azure (Windows)
       if: ${{ matrix.name == 'Windows' }}
-      shell: bash
-      run: |
-        iscc "packaging\installer.iss"
-        mv "packaging/Output/${{ env.PRODUCT_NAME }}.exe" "${{ env.ARTIFACTS_PATH }}/"
+      working-directory: ${{ env.ARTIFACTS_PATH }}
+      run: 7z a -tzip ${{ env.PRODUCT_NAME }}.zip .
+
+    #- name: Generate Installer and Sign with EV cert on Azure (Windows)
+    #  if: ${{ matrix.name == 'Windows' }}
+    #  shell: bash
+    #  run: |
+    #    iscc "packaging\installer.iss"
+    #    mv "packaging/Output/${{ env.PRODUCT_NAME }}.exe" "${{ env.ARTIFACTS_PATH }}/"
       
     - name: Upload Exe (Windows)
       if: ${{ matrix.name == 'Windows' }}
