@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 set(PROJECT_NAME "Pamplejuce")
-set(FORMATS AU VST3 AUv3)
+set(FORMATS AU VST3 AUv3 Standalone)
 file(STRINGS VERSION CURRENT_VERSION)
 project(${PROJECT_NAME} VERSION ${CURRENT_VERSION})
 
