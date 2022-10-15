@@ -114,7 +114,7 @@ jobs:
       if: ${{ matrix.name == 'Windows' }}
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.PRODUCT_NAME }}.exe
+        name: ${{ env.PRODUCT_NAME }}.zip
         path: '${{ env.ARTIFACTS_PATH }}/${{ env.PRODUCT_NAME }}.zip'
 
     - name: Upload Zip (Linux)
