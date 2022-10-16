@@ -33,7 +33,7 @@ clap_juce_extensions_plugin(TARGET Pamplejuce
 CLAP_ID "com.Pamplejuce.Pamplejuce"
 CLAP_FEATURES audio-effect)
 
-juce_generate_juce_header(Pamplejuce)
+juce_generate_juce_header("${PROJECT_NAME}")
 
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 set(SourceFiles
