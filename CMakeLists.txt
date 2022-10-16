@@ -37,11 +37,15 @@ juce_generate_juce_header(Pamplejuce)
 
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_20)
 set(SourceFiles
-    Source/PluginEditor.h
-    Source/PluginProcessor.h
-    Source/PluginEditor.cpp
-    Source/PluginProcessor.cpp)
-target_sources("${PROJECT_NAME}" PRIVATE ${SourceFiles})
+    PluginEditor.h
+    PluginProcessor.h
+    PluginEditor.cpp
+    PluginProcessor.cpp)
+
+target_sources(AudioPluginExample
+    PRIVATE
+        PluginEditor.cpp
+        PluginProcessor.cpp)
 
 # No, we don't want our source buried in extra nested folders
 set_target_properties("${PROJECT_NAME}" PROPERTIES FOLDER "")
@@ -83,6 +87,10 @@ target_compile_definitions("${PROJECT_NAME}"
     JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_VST3_CAN_REPLACE_VST2=0)
+
+target_include_directories(AudioPluginExample
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/Source )
 
 target_link_libraries("${PROJECT_NAME}"
     PRIVATE

@@ -131,7 +131,6 @@ jobs:
         name: ${{ env.PRODUCT_NAME }}.zip
         path: '${{ env.ARTIFACTS_PATH }}/${{ env.PRODUCT_NAME }}.zip'
 
-
   release:
     if: contains(github.ref, 'tags/v')
     runs-on: ubuntu-latest
