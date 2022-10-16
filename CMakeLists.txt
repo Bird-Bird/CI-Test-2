@@ -29,7 +29,7 @@ juce_add_plugin("${PROJECT_NAME}"
     FORMATS "${FORMATS}"
     PRODUCT_NAME "${PROJECT_NAME}")        # The name of the final executable, which can differ from the target name
 
-clap_juce_extensions_plugin(TARGET Pamplejuce
+clap_juce_extensions_plugin(TARGET "${PROJECT_NAME}"
 CLAP_ID "com.Pamplejuce.Pamplejuce"
 CLAP_FEATURES audio-effect)
 
