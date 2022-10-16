@@ -42,7 +42,7 @@ set(SourceFiles
     PluginEditor.cpp
     PluginProcessor.cpp)
 
-target_sources(AudioPluginExample
+target_sources("${PROJECT_NAME}"
     PRIVATE
         PluginEditor.cpp
         PluginProcessor.cpp)
@@ -88,7 +88,7 @@ target_compile_definitions("${PROJECT_NAME}"
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
-target_include_directories(AudioPluginExample
+target_include_directories("${PROJECT_NAME}"
     PUBLIC
         ${PROJECT_SOURCE_DIR}/Source )
 
